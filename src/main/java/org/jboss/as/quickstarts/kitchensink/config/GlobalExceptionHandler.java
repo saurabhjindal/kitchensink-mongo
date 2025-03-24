@@ -1,8 +1,10 @@
 package org.jboss.as.quickstarts.kitchensink.config;
 
 import io.swagger.v3.oas.annotations.Hidden;
+import lombok.extern.slf4j.Slf4j;
 import org.jboss.as.quickstarts.kitchensink.constants.ExceptionTypeEnum;
 import org.jboss.as.quickstarts.kitchensink.dto.error.ExceptionResponse;
+import org.jboss.as.quickstarts.kitchensink.exception.KitchenSinkException;
 import org.jboss.as.quickstarts.kitchensink.exception.MemberNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +18,13 @@ import java.util.Map;
 
 @RestControllerAdvice
 @Hidden
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ExceptionResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+
+        log.error("Exception validation exception : {}", ex);
         Map<String, String> errors = new HashMap<>();
 
         for (FieldError error : ex.getBindingResult().getFieldErrors()) {
@@ -36,6 +41,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MemberNotFoundException.class)
     public ResponseEntity<ExceptionResponse> handleValidationExceptions(MemberNotFoundException ex) {
 
+        log.error("Member not found exception : {}", ex);
+
         ExceptionResponse exceptionResponse = ExceptionResponse.builder()
                 .exceptionType(ExceptionTypeEnum.NOT_FOUND)
                 .errorMessage(ex.getMessage())
@@ -43,10 +50,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(KitchenSinkException.class)
+    public ResponseEntity<ExceptionResponse> handleValidationExceptions(KitchenSinkException ex) {
+
+        log.error("KitchenSinkException : {}", ex);
+        ExceptionResponse exceptionResponse = ExceptionResponse.builder()
+                .exceptionType(ExceptionTypeEnum.EXCEPTION)
+                .errorMessage(ex.getMessage())
+                .build();
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
     // Handle generic exceptions
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        return new ResponseEntity<>("An error occurred: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
+    public ResponseEntity<ExceptionResponse> handleGenericException(Exception ex) {
+        log.error("Something went wrong : {}", ex.getMessage(), ex);
+        ExceptionResponse exceptionResponse = ExceptionResponse.builder()
+                .exceptionType(ExceptionTypeEnum.EXCEPTION)
+                .errorMessage("Something went wrong")
+                .debugMessage(ex.getMessage())
+                .build();
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);    }
 
 }

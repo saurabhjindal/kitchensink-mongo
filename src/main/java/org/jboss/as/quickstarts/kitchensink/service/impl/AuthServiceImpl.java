@@ -2,6 +2,7 @@ package org.jboss.as.quickstarts.kitchensink.service.impl;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jboss.as.quickstarts.kitchensink.exception.KitchenSinkException;
 import org.jboss.as.quickstarts.kitchensink.exception.MemberNotFoundException;
 import org.jboss.as.quickstarts.kitchensink.config.JwtUtil;
 import org.jboss.as.quickstarts.kitchensink.dto.LoginRequestDTO;
@@ -39,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
             return jwtUtil.generateToken(jwtMap);
         }
         else{
-            throw new RuntimeException("Login failed for user: " + loginRequestDTO.getMemberId());
+            throw new KitchenSinkException("Login failed for user: " + loginRequestDTO.getMemberId());
         }
 
     }

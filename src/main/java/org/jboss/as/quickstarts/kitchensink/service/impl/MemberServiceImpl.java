@@ -1,5 +1,6 @@
 package org.jboss.as.quickstarts.kitchensink.service.impl;
 
+import org.jboss.as.quickstarts.kitchensink.exception.KitchenSinkException;
 import org.jboss.as.quickstarts.kitchensink.exception.MemberNotFoundException;
 import org.jboss.as.quickstarts.kitchensink.constants.Constants;
 import org.jboss.as.quickstarts.kitchensink.constants.MemberRoleEnum;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,8 +26,8 @@ public class MemberServiceImpl implements MemberService {
     private final MemberMapper memberMapper;
     private final PasswordEncoder passwordEncoder;
 
-    public MemberServiceImpl (MemberRepository memberRepository,SequenceGenerator sequenceGenerator,
-    MemberMapper memberMapper, PasswordEncoder passwordEncoder){
+    public MemberServiceImpl(MemberRepository memberRepository, SequenceGenerator sequenceGenerator,
+                             MemberMapper memberMapper, PasswordEncoder passwordEncoder) {
         this.sequenceGenerator = sequenceGenerator;
         this.memberMapper = memberMapper;
         this.memberRepository = memberRepository;
@@ -49,11 +51,17 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberDTO addMember(MemberDTO memberResponseDTO) {
-        MemberEntity memberEntity = memberMapper.toEntity(memberResponseDTO);
+
+        var memberEntityExisting = memberRepository.findByEmailOrPhoneNumber(memberResponseDTO.getEmail(), memberResponseDTO.getPhoneNumber());
+        if (memberEntityExisting.isPresent()){
+            throw new KitchenSinkException("Phone or Email already exists with member id : " + memberEntityExisting.get().getMemberId() );
+        }
+
+        var memberEntity = memberMapper.toEntity(memberResponseDTO);
         memberEntity.setMemberId(sequenceGenerator.generateSequence(Constants.MEMBERS_ID_SEQUENCE_NAME));
         memberEntity.setPasswordHash(passwordEncoder.encode(memberResponseDTO.getPassword()));
         memberEntity.setRole(List.of(MemberRoleEnum.USER));
-        return memberMapper.toDto(memberRepository.save(memberEntity)) ;
+        return memberMapper.toDto(memberRepository.save(memberEntity));
     }
 
 
@@ -62,7 +70,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public MemberDTO updateMember(MemberDTO memberDTO) {
 
-        MemberEntity memberEntity = getMemberEntity(memberDTO.getMemberId());
+        var memberEntity = getMemberEntity(memberDTO.getMemberId());
+        memberEntity.setName(memberDTO.getName());
         memberEntity.setPhoneNumber(memberDTO.getPhoneNumber());
         memberEntity.setEmail(memberDTO.getEmail());
         return memberMapper.toDto(memberRepository.save(memberEntity));
@@ -76,7 +85,7 @@ public class MemberServiceImpl implements MemberService {
     private MemberEntity getMemberEntity(Long memberId) {
         MemberEntity memberEntity = memberRepository.findByMemberId(memberId)
                 .orElseThrow(() ->
-                        new  MemberNotFoundException("member Id : " + memberId + "Not found.",
+                        new MemberNotFoundException("member Id : " + memberId + "Not found.",
                                 "Not able to find specified member id."
                         ));
         return memberEntity;
