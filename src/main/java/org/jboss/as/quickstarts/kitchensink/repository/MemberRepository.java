@@ -13,4 +13,6 @@ public interface MemberRepository extends MongoRepository<MemberEntity, String> 
 
     Optional<MemberEntity> findByMemberId(Long memberId); //find member by member Id
 
+    Optional<MemberEntity> findByEmailOrPhoneNumber(String email, String phoneNumber);
+
 }

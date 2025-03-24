@@ -14,6 +14,7 @@ public class ExceptionResponse {
     private ExceptionTypeEnum exceptionType;
     private Map<String, String> fieldErrors = new HashMap<>();
     private String errorMessage;
+    private String debugMessage;
 
 
 }

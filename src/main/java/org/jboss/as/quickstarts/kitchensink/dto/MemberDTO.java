@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.ToString;
 import org.springframework.validation.annotation.Validated;
 
 @Schema
 @Validated
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
+@ToString(exclude = "password")
 public class MemberDTO {
 
     private Long memberId;
