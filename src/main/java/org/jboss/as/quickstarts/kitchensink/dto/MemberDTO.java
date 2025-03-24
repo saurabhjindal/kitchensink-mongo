@@ -2,7 +2,10 @@ package org.jboss.as.quickstarts.kitchensink.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.validation.annotation.Validated;
@@ -22,12 +25,11 @@ public class MemberDTO {
     private String name;
 
     @NotBlank(message = "Email must not be blank")
-    @Email (message = "Malformed Email")
+    @Email (message = "Invalid Email , email format: abc@mail.com")
     private String email;
 
     @NotBlank(message = "Phone Number must not be blank")
-    @Size(min = 10, max = 12)
-    @Digits(fraction = 0, integer = 12)
+    @Pattern(regexp = "^[6-9]\\d{9}$", message = "Phone number must be 10 digits and start from 6 to 9 numbers.")
     private String phoneNumber;
 
     private String password;
